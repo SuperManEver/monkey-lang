@@ -2,14 +2,18 @@ package main
 
 import (
 	"fmt"
-	"monkey_lang/token"
+	"monkey_lang/repl"
+	"os"
+	"os/user"
 )
 
 func main() {
-	var tok token.Token
-
-	tok.Literal = "teasd"
-	tok.Type = "asd"
-
-	fmt.Printf("Hello %s! This is the Monkey programming language!\n", tok.Literal)
+	user, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Hello %s! This is the Monkey programming language!\n",
+		user.Username)
+	fmt.Printf("Feel free to type in commands\n")
+	repl.Start(os.Stdin, os.Stdout)
 }
