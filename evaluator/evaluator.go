@@ -72,23 +72,24 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
-		// case *ast.FunctionLiteral:
-		// 	params := node.Parameters
-		// 	body := node.Body
-		// 	return &object.Function{Parameters: params, Env: env, Body: body}
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: params, Env: env, Body: body}
 
-		// case *ast.CallExpression:
-		// 	function := Eval(node.Function, env)
-		// 	if isError(function) {
-		// 		return function
-		// 	}
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
 
-		// 	args := evalExpressions(node.Arguments, env)
-		// 	if len(args) == 1 && isError(args[0]) {
-		// 		return args[0]
-		// 	}
+		if isError(function) {
+			return function
+		}
 
-		// 	return applyFunction(function, args)
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+
+		return applyFunction(function, args)
 	}
 
 	return nil
@@ -292,34 +293,33 @@ func evalExpressions(
 	return result
 }
 
-// func applyFunction(fn object.Object, args []object.Object) object.Object {
-// 	function, ok := fn.(*object.Function)
-// 	if !ok {
-// 		return newError("not a function: %s", fn.Type())
-// 	}
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
 
-// 	extendedEnv := extendFunctionEnv(function, args)
-// 	evaluated := Eval(function.Body, extendedEnv)
-// 	return unwrapReturnValue(evaluated)
-// }
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
 
-// func extendFunctionEnv(
-// 	fn *object.Function,
-// 	args []object.Object,
-// ) *object.Environment {
-// 	env := object.NewEnclosedEnvironment(fn.Env)
+	extendedEnv := extendFunctionEnv(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapReturnValue(evaluated)
+}
 
-// 	for paramIdx, param := range fn.Parameters {
-// 		env.Set(param.Value, args[paramIdx])
-// 	}
+func extendFunctionEnv(
+	fn *object.Function,
+	args []object.Object,
+) *object.Environment {
+	extendedEnv := object.NewEnclosedEnvironment(fn.Env)
 
-// 	return env
-// }
+	for paramIdx, param := range fn.Parameters {
+		extendedEnv.Set(param.Value, args[paramIdx])
+	}
+	return extendedEnv
+}
 
 func unwrapReturnValue(obj object.Object) object.Object {
 	if returnValue, ok := obj.(*object.ReturnValue); ok {
 		return returnValue.Value
 	}
-
 	return obj
 }
