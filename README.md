@@ -61,3 +61,10 @@ let adder = newAdder(1, 2);
 
 adder(8); // => 11
 ```
+
+It has hashes
+
+```sh
+let myHash = {"name": "Jimmy", "age": 72, "band": "Led Zeppelin"};
+myHash["name"] -> "Jimmy"
+```
